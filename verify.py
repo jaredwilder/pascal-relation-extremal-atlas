@@ -88,6 +88,49 @@ def test_least_base():
               base_violated(co, 2 ** r, min(10, 3 + r)), False)
 
 
+def find_violation_dfs(coeffs, B, maxexp):
+    """Pruned DFS over injective exponent assignments. Exact, not a sample."""
+    n = len(coeffs)
+    order = sorted(range(n), key=lambda i: -abs(coeffs[i]))
+    pows = [B ** e for e in range(maxexp + 1)]
+    maxp = pows[maxexp]
+    used = [False] * (maxexp + 1)
+    suff = [0] * (n + 1)
+    for k in range(n - 1, -1, -1):
+        suff[k] = suff[k + 1] + abs(coeffs[order[k]]) * maxp
+
+    def dfs(k, total):
+        if abs(total) > suff[k]:
+            return False
+        if k == n:
+            return total == 0
+        ci = order[k]
+        for e in range(maxexp + 1):
+            if used[e]:
+                continue
+            used[e] = True
+            if dfs(k + 1, total + coeffs[ci] * pows[e]):
+                used[e] = False
+                return True
+            used[e] = False
+        return False
+
+    return dfs(0, 0)
+
+
+def test_r9():
+    print("2b. r = 9, settled by pruned DFS")
+    co = pascal(9)
+    w = (2, 4, 8, 64, 16, 1, 256, 512, 32, 128)
+    check("the base-2 witness sums to zero", sum(c * v for c, v in zip(co, w)), 0)
+    for maxexp in (9, 11, 13):
+        row = {B: find_violation_dfs(co, B, maxexp) for B in (2, 3, 4)}
+        check("exp 0..%-2d  base 2 violated" % maxexp, row[2], True)
+        check("exp 0..%-2d  base 3 violated" % maxexp, row[3], True)
+        check("exp 0..%-2d  base 4 FREE" % maxexp, row[4], False)
+    print("     => least base at r = 9 is 4, stable across all three ranges")
+
+
 def test_density():
     print("3. The density bound that was never multiplied out")
     check("the applied bound 11/50", round(11 / 50, 4), 0.22)
@@ -121,7 +164,7 @@ def test_b_atlas():
 
 
 def main():
-    for fn in (test_gap_law, test_least_base, test_density, test_b_atlas):
+    for fn in (test_gap_law, test_least_base, test_r9, test_density, test_b_atlas):
         fn()
         print()
     if FAILURES:

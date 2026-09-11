@@ -29,26 +29,38 @@ Five species, nothing else. **Checked against brute-force permutation search on 
 This reduces membership from a search over 24 permutations to five linear tests on the gap word. It
 was sitting in a Lean side-receipt and appears in neither summary.
 
-## 2. The published base bound is exponentially far from least, for r = 1..8
+## 2. The published base bound is exponentially far from least
 
 For the Pascal relation of order `r`, the least geometric base `B` such that `{B^n}` contains no
-violation, recomputed here for `r = 1..8`:
+violation, recomputed here for `r = 1..9`:
 
 ```
-r                      1  2  3  4  5  6  7  8
-least base             2  2  2  2  3  3  2  3
-published rule 2^r+1   3  5  9 17 33 65 129 257
+r                      1  2  3  4  5  6  7  8   9
+least base             2  2  2  2  3  3  2  3   4
+published rule 2^r+1   3  5  9 17 33 65 129 257 513
 ```
 
 **The measured value is not monotone in `r`** — it rises to 3 at `r = 5`, falls back to 2 at
-`r = 7`, and returns to 3 at `r = 8`. At `r = 8` the gap between the published rule and the truth is
-a factor of 86.
+`r = 7`, then 3 at `r = 8` and 4 at `r = 9`. At `r = 9` the gap between the published rule and the
+truth is a factor of 128.
 
-### r >= 9 is contested and not settled here
+### r = 9, settled
 
-Two independent passes over this question disagree above `r = 8`. One reports the table continuing
-`4, 5, 4, 4` for `r = 9..12`. The other reports that **no** base below 200 is free at `r = 9`, and
-supplies a base-2 witness for `r = 9`:
+Two independent passes disagreed above `r = 8`. One reported the table continuing `4, 5, 4, 4` for
+`r = 9..12`. The other reported that **no** base below 200 is free at `r = 9`.
+
+A pruned depth-first search over injective exponent assignments settles `r = 9`:
+
+| exponent range | base 2 | base 3 | base 4 | base 5 | base 6 | base 7 | base 8 |
+|---|---|---|---|---|---|---|---|
+| `0..9` | violated | violated | **free** | free | free | free | free |
+| `0..11` | violated | violated | **free** | free | free | free | free |
+| `0..13` | violated | violated | **free** | free | free | free | free |
+
+**The least base at `r = 9` is 4.** The result is stable across all three exponent ranges, which
+confirms the `4, 5, 4, 4` table at `r = 9` and refutes the claim that nothing below 200 is free.
+
+The base-2 witness supplied by the second source is correct and only rules out base 2:
 
 ```
 coeffs   [1, -9, 36, -84, 126, -126, 84, -36, 9, -1]
@@ -56,13 +68,9 @@ values   (2, 4, 8, 64, 16, 1, 256, 512, 32, 128)
 sum      2 - 36 + 288 - 5376 + 2016 - 126 + 21504 - 18432 + 288 - 128  =  0
 ```
 
-That witness only rules out base 2, so it does not by itself contradict a least base of 4. The two
-claims differ in the exponent range searched, and a bounded exponent sweep that finds nothing is not
-the same as a base being free. **This repository does not settle `r >= 9`**, and the `4, 5, 4, 4`
-continuation should be treated as unresolved rather than as a result.
-
-The dominance argument does give an unconditional handle: at `r = 9` the coefficients sum to 512 in
-absolute value, so base 513 is free and the true least base lies in `(2, 513]`.
+`r = 10..12` remains unverified here. The dominance argument gives an unconditional upper handle: at
+`r = 9` the coefficients sum to 512 in absolute value, so base 513 is free, and the measured 4 sits
+far below it.
 
 ### The same question has three different answers in the same store
 
@@ -70,7 +78,7 @@ absolute value, so base 513 is free and the true least base lies in `(2, 513]`.
 |---|---|
 | the published rule | `B_r = 2^r + 1` |
 | the store's own sharper dominance corollary | `B_r = 2^r` |
-| measured least base, `r = 1..8` | between **2 and 3** |
+| measured least base, `r = 1..9` | between **2 and 4** |
 
 The dominance corollary is `B > max_j (sum_i |c_i| - |c_j|) / |c_j|`, which for Pascal gives `2^r`,
 one less than the published rule. I confirmed base `2^r` is violation-free for `r = 1..8`.
